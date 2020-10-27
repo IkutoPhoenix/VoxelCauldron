@@ -11,7 +11,7 @@ public class MaterialList {
     }
 
     public void setMaterial (int id, Material material) {
-        materials[id + 1] = material;
+        materials[id - 1] = material;
     }
 
     public Material[] getMaterials() {

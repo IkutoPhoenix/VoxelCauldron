@@ -11,7 +11,7 @@ public class Palette {
     }
 
     public void setColor(int id, Color color) {
-        colors[id + 1] = color;
+        colors[id - 1] = color;
     }
 
     public Color[] getColors() {
