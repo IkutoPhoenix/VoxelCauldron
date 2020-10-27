@@ -207,7 +207,7 @@ public class exportToVox {
             matBytes.addAll(decToHex(0));
 
             // Id of Material (color id)
-            matBytes.addAll(decToHex(i));
+            matBytes.addAll(decToHex(i + 1));
 
             // Number of properties (type + properties)
             matBytes.addAll(decToHex(1 + m.getList().length));
