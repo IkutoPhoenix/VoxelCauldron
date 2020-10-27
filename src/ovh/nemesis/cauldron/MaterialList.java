@@ -10,8 +10,8 @@ public class MaterialList {
         }
     }
 
-    public void setMaterial (int index, Material material) {
-        materials[index] = material;
+    public void setMaterial (int id, Material material) {
+        materials[id + 1] = material;
     }
 
     public Material[] getMaterials() {
