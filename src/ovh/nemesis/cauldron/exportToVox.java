@@ -30,11 +30,10 @@ public class exportToVox {
     }
 
     public static List<Byte> export(List<Model> models, Palette palette) {
-        List<Byte> bytes = new ArrayList<>();
         List<Byte> temp;
         int size = 0;
 
-        bytes.addAll(initFile());
+        List<Byte> bytes = new ArrayList<>(initFile());
 
         temp = initPACK(models.size());
         bytes.addAll(temp);
@@ -93,7 +92,7 @@ public class exportToVox {
         // Size of chunk content (4)
         bytes.addAll(decToHex(4));
 
-        // Size of children cjunks (0)
+        // Size of children chunks (0)
         bytes.addAll(decToHex(0));
 
         // Number of models (convert dec to hex)
