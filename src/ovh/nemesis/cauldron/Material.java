@@ -12,7 +12,6 @@ public class Material {
      *  cloud : weight, mix (_gw), phase_0 (_g0) [-0.90;0.90], phase_1 (_g1) [-0.90;0.90]
      *  emission : weight, power (_flux) [0;4], ldr
      */
-    private boolean plastic;
     private MaterialProperty[] properties = {weight, roughness, specular_metal, specular_plastic, refraction, attenuation, flux, mix, phase_0, phase_1, ldr};
 
     public Material (MaterialType materialType) {
@@ -44,11 +43,7 @@ public class Material {
         this.materialType = materialType;
     }
 
-    public boolean isPlastic() {
-        return plastic;
-    }
-
-    public void setPlastic(boolean plastic) {
-        this.plastic = plastic;
+    public MaterialProperty[] getList() {
+        return properties;
     }
 }

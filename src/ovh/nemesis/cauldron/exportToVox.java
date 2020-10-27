@@ -5,14 +5,14 @@ import java.util.List;
 
 public class exportToVox {
 
-    public static byte[] exportToByteArray(Model model, Palette palette) {
+    public static byte[] exportToByteArray(Model model, Palette palette, MaterialList materialList) {
         List<Model> models = new ArrayList<>();
         models.add(model);
-        return exportToByteArray(models, palette);
+        return exportToByteArray(models, palette, materialList);
     }
 
-    public static byte[] exportToByteArray(List<Model> models, Palette palette) {
-        List<Byte> bytes = export(models, palette);
+    public static byte[] exportToByteArray(List<Model> models, Palette palette, MaterialList materialList) {
+        List<Byte> bytes = export(models, palette, materialList);
 
         byte[] array = new byte[bytes.size()];
 
@@ -23,37 +23,35 @@ public class exportToVox {
         return array;
     }
 
-    public static List<Byte> export(Model model, Palette palette) {
+    public static List<Byte> export(Model model, Palette palette, MaterialList materialList) {
         List<Model> models = new ArrayList<>();
         models.add(model);
-        return export(models, palette);
+        return export(models, palette, materialList);
     }
 
-    public static List<Byte> export(List<Model> models, Palette palette) {
-        List<Byte> temp;
-        int size = 0;
-
+    public static List<Byte> export(List<Model> models, Palette palette, MaterialList materialList) {
+        // New Byte list with file headers and MAIN chunk
         List<Byte> bytes = new ArrayList<>(initFile());
 
-        temp = initPACK(models.size());
-        bytes.addAll(temp);
-        size += temp.size();
+        // PACK chunk
+        bytes.addAll(initPACK(models.size()));
 
+        // SIZE and XYZI chunks
         for (Model model : models) {
-            Coordinates maxCoords = model.getMaxCoords();
-            temp = initSIZE(maxCoords);
-            bytes.addAll(temp);
-            size += temp.size();
-
-            temp = initXYZI(model);
-            bytes.addAll(temp);
-            size += temp.size();
+            bytes.addAll(initSIZE(model.getMaxCoords()));
+            bytes.addAll(initXYZI(model));
         }
 
-        temp = initRGBA(palette);
-        bytes.addAll(temp);
-        size += temp.size();
+        // RGBA Chunk
+        bytes.addAll(initRGBA(palette));
 
+        // MATL Chunks
+        bytes.addAll(initMATL(materialList));
+
+        // Size of children chunks (total bytes minus headers length)
+        int size = bytes.size() - 20;
+
+        // Change children chunks size
         bytes.set(16, (byte) (size & 0x000000ff));
         bytes.set(17, (byte) (size & 0x0000ff00));
         bytes.set(18, (byte) (size & 0x00ff0000));
@@ -66,13 +64,13 @@ public class exportToVox {
         List<Byte> bytes = new ArrayList<>();
 
         // 'VOX '
-        bytes.addAll(charsToBytes('V', 'O', 'X', ' '));
+        bytes.addAll(stringToHex("VOX "));
 
         // Version number (150)
         bytes.addAll(decToHex(150));
 
         // Chunk 'MAIN'
-        bytes.addAll(charsToBytes('M', 'A', 'I', 'N'));
+        bytes.addAll(stringToHex("MAIN"));
 
         // Size of chunk content of 'MAIN' (0)
         bytes.addAll(decToHex(0));
@@ -87,7 +85,7 @@ public class exportToVox {
         List<Byte> bytes = new ArrayList<>();
 
         // Name of Chunk
-        bytes.addAll(charsToBytes('P', 'A', 'C', 'K'));
+        bytes.addAll(stringToHex("PACK"));
 
         // Size of chunk content (4)
         bytes.addAll(decToHex(4));
@@ -105,7 +103,7 @@ public class exportToVox {
         List<Byte> bytes = new ArrayList<>();
 
         // Name of Chunk
-        bytes.addAll(charsToBytes('S', 'I', 'Z', 'E'));
+        bytes.addAll(stringToHex("SIZE"));
 
         // Size of chunk content (12)
         bytes.addAll(decToHex(12));
@@ -129,7 +127,7 @@ public class exportToVox {
         List<Byte> bytes = new ArrayList<>();
 
         // Name of Chunk
-        bytes.addAll(charsToBytes('X', 'Y', 'Z', 'I'));
+        bytes.addAll(stringToHex("XYZI"));
 
         // Size of Chunk content (4 + 4 * n_voxels)
         bytes.addAll(decToHex(4 + (4 * model.getVoxels().size())));
@@ -163,10 +161,13 @@ public class exportToVox {
         }
 
         // Name of Chunk
-        bytes.addAll(charsToBytes('R', 'G', 'B', 'A'));
+        bytes.addAll(stringToHex("RGBA"));
 
         // Size of chunk content (4*255)
         bytes.addAll(decToHex(4*255));
+
+        // Size of children chunks (0)
+        bytes.addAll(decToHex(0));
 
         // Each Colors
         for (Color color : palette.getColors()) {
@@ -179,24 +180,79 @@ public class exportToVox {
         return bytes;
     }
 
-    public static byte charToByte(char c) { // Char to Byte
-        return ((byte) (c & 0xff));
-    }
-
-    public static List<Byte> charsToBytes (char c0, char c1, char c2, char c3) {
+    public static List<Byte> initMATL (MaterialList materialList) {
         List<Byte> bytes = new ArrayList<>();
-        bytes.add((byte) (c0 & 0xff));
-        bytes.add((byte) (c1 & 0xff));
-        bytes.add((byte) (c2 & 0xff));
-        bytes.add((byte) (c3 & 0xff));
+
+        if (materialList == null) {
+            return bytes;
+        }
+
+        if (materialList.getMaterials().length != 255) {
+            return bytes;
+        }
+
+        // Each Material
+        for (int i = 0; i < materialList.getMaterials().length; i++) {
+            List<Byte> matBytes = new ArrayList<>();
+            List<Byte> temp = new ArrayList<>();
+            Material m = materialList.getMaterials()[i];
+
+            // Name of chunk
+            matBytes.addAll(stringToHex("MATL"));
+
+            // Size of chunk content (changed later)
+            matBytes.addAll(decToHex(0));
+
+            // Size of children (0)
+            matBytes.addAll(decToHex(0));
+
+            // Id of Material (color id)
+            matBytes.addAll(decToHex(i));
+
+            // Number of properties (type + properties)
+            matBytes.addAll(decToHex(1 + m.getList().length));
+
+            // Type key : str key length, str key
+            temp = stringToHex("_type");
+            matBytes.addAll(decToHex(temp.size()));
+            matBytes.addAll(temp);
+
+            // Type value : str value length, str value (float)
+            temp = stringToHex(m.getMaterialType().getType());
+            matBytes.addAll(decToHex(temp.size()));
+            matBytes.addAll(temp);
+
+            // Each properties
+            for (MaterialProperty mp : m.getList()) {
+                // Property key : str key length, str key
+                temp = stringToHex(mp.getKey());
+                matBytes.addAll(decToHex(temp.size()));
+                matBytes.addAll(temp);
+
+                // Property value : str value length, str value (float)
+                temp = stringToHex(String.format("%s", mp.getValue()));
+                matBytes.addAll(decToHex(temp.size()));
+                matBytes.addAll(temp);
+            }
+
+            // Change chunk content size (total bytes minus headers length)
+            int size = matBytes.size() - 12;
+
+            matBytes.set(4, (byte) (size & 0x000000ff));
+            matBytes.set(5, (byte) (size & 0x0000ff00));
+            matBytes.set(6, (byte) (size & 0x00ff0000));
+            matBytes.set(7, (byte) (size & 0xff000000));
+
+            bytes.addAll(matBytes);
+        }
 
         return bytes;
     }
 
-    public static List<Byte> repeat(int n, int hex) {
+    public static List<Byte> stringToHex (String str) {
         List<Byte> bytes = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            bytes.add((byte) hex);
+        for (char c : str.toCharArray()) {
+            bytes.add((byte) (c & 0xff));
         }
         return bytes;
     }
