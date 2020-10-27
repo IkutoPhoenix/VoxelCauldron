@@ -52,10 +52,10 @@ public class exportToVox {
         int size = bytes.size() - 20;
 
         // Change children chunks size
-        bytes.set(16, (byte) (size & 0x000000ff));
-        bytes.set(17, (byte) (size & 0x0000ff00));
-        bytes.set(18, (byte) (size & 0x00ff0000));
-        bytes.set(19, (byte) (size & 0xff000000));
+        bytes.set(16, (byte) (size & 0xff));
+        bytes.set(17, (byte) ((size >> 8) & 0xff));
+        bytes.set(18, (byte) ((size >> 16) & 0xff));
+        bytes.set(19, (byte) ((size >> 24) & 0xff));
 
         return bytes;
     }
@@ -238,10 +238,10 @@ public class exportToVox {
             // Change chunk content size (total bytes minus headers length)
             int size = matBytes.size() - 12;
 
-            matBytes.set(4, (byte) (size & 0x000000ff));
-            matBytes.set(5, (byte) (size & 0x0000ff00));
-            matBytes.set(6, (byte) (size & 0x00ff0000));
-            matBytes.set(7, (byte) (size & 0xff000000));
+            matBytes.set(4, (byte) (size & 0xff));
+            matBytes.set(5, (byte) ((size >> 8) & 0xff));
+            matBytes.set(6, (byte) ((size >> 16) & 0xff));
+            matBytes.set(7, (byte) ((size >> 24) & 0xff));
 
             bytes.addAll(matBytes);
         }
@@ -260,10 +260,10 @@ public class exportToVox {
     public static List<Byte> decToHex (int dec) {
         List<Byte> bytes = new ArrayList<>();
 
-        bytes.add((byte) (dec & 0x000000ff));
-        bytes.add((byte) (dec & 0x0000ff00));
-        bytes.add((byte) (dec & 0x00ff0000));
-        bytes.add((byte) (dec & 0xff000000));
+        bytes.add((byte) (dec & 0xff));
+        bytes.add((byte) ((dec >> 8) & 0xff));
+        bytes.add((byte) ((dec >> 16) & 0xff));
+        bytes.add((byte) ((dec >> 24) & 0xff));
 
         return bytes;
     }
