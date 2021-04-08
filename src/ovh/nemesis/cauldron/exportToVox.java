@@ -156,7 +156,7 @@ public class exportToVox {
             return bytes;
         }
 
-        if (palette.getColors().length != 255) {
+        if (palette.getColors().length != 256) {
             return bytes;
         }
 
@@ -164,7 +164,7 @@ public class exportToVox {
         bytes.addAll(stringToHex("RGBA"));
 
         // Size of chunk content (4*255)
-        bytes.addAll(decToHex(4*255));
+        bytes.addAll(decToHex(4*256));
 
         // Size of children chunks (0)
         bytes.addAll(decToHex(0));
@@ -194,7 +194,7 @@ public class exportToVox {
         // Each Material
         for (int i = 0; i < materialList.getMaterials().length; i++) {
             List<Byte> matBytes = new ArrayList<>();
-            List<Byte> temp = new ArrayList<>();
+            List<Byte> temp;
             Material m = materialList.getMaterials()[i];
 
             // Name of chunk

@@ -2,7 +2,7 @@ package ovh.nemesis.cauldron;
 
 public class Palette {
 
-    private Color[] colors = new Color[255];
+    private Color[] colors = new Color[256];
 
     public Palette() {
         for (int i = 0; i < colors.length; i++) {

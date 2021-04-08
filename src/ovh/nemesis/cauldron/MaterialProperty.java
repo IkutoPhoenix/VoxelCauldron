@@ -1,28 +1,27 @@
 package ovh.nemesis.cauldron;
 
-import com.sun.istack.internal.NotNull;
 
 public class MaterialProperty {
 
     private String key, friendlyName = null;
     private float value = 0f;
 
-    public MaterialProperty(@NotNull String key, String friendlyName, float value) {
+    public MaterialProperty(String key, String friendlyName, float value) {
         this.key = key;
         this.friendlyName = friendlyName;
         this.value = value;
     }
 
-    public MaterialProperty(@NotNull String key, float value) {
+    public MaterialProperty(String key, float value) {
         this.key = key;
         this.value = value;
     }
 
-    public MaterialProperty(@NotNull String key) {
+    public MaterialProperty(String key) {
         this.key = key;
     }
 
-    public MaterialProperty(@NotNull String key, String friendlyName) {
+    public MaterialProperty(String key, String friendlyName) {
         this.friendlyName = friendlyName;
         this.key = key;
     }
